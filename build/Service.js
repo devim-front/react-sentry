@@ -62,18 +62,14 @@ var Service = /** @class */ (function () {
      * буду отправляться в браузерную консоль с уровнем 'debug'.
      */
     function Service(dsn) {
-        /**
-         * Последний присвоенный идентификатор события (используется, когда сервис
-         * не подключён к sentry.io).
-         */
-        this.lastId = 0;
         this.dsn = dsn;
-        if (this.dsn != null) {
-            browser_1.init({
-                dsn: dsn,
-                beforeSend: this.handleEvent.bind(this),
-            });
+        if (this.dsn == null) {
+            return this;
         }
+        browser_1.init({
+            dsn: dsn,
+            beforeSend: this.handleEvent.bind(this),
+        });
     }
     /**
      * Возвращает экземпляр синглтона.
@@ -131,14 +127,6 @@ var Service = /** @class */ (function () {
         });
     };
     /**
-     * Возвращает уникальный идентификатор события.
-     */
-    Service.prototype.getUniqueId = function () {
-        var id = this.lastId + 1;
-        this.lastId = id;
-        return String(id);
-    };
-    /**
      * Возвращает коллекцию пользовательских свойств экземпляра ошибки.
      * @param error Ошибка.
      */
@@ -175,7 +163,10 @@ var Service = /** @class */ (function () {
      */
     Service.prototype.sendError = function (error) {
         console.debug("sentry_exception", error.message, this.getErrorProperties(error));
-        return this.dsn == null ? this.getUniqueId() : browser_1.captureException(error);
+        if (this.dsn == null) {
+            return;
+        }
+        browser_1.captureException(error);
     };
     /**
      * Отправляет в sentry событие с указанными параметрами и возвращает
@@ -187,14 +178,15 @@ var Service = /** @class */ (function () {
      */
     Service.prototype.sendEvent = function (level, label, message, payload) {
         console.debug("sentry_" + level, label, message, payload);
-        return this.dsn == null
-            ? this.getUniqueId()
-            : browser_1.captureEvent({
-                message: message,
-                level: level,
-                tags: { label: label },
-                extra: payload,
-            });
+        if (this.dsn == null) {
+            return;
+        }
+        browser_1.captureEvent({
+            message: message,
+            level: level,
+            tags: { label: label },
+            extra: payload,
+        });
     };
     /**
      * Отправляет отладочное событие и возвращает присвоенный ему идентификатор.
@@ -204,7 +196,7 @@ var Service = /** @class */ (function () {
      */
     Service.prototype.debug = function (label, message, payload) {
         if (payload === void 0) { payload = {}; }
-        return this.sendEvent(browser_1.Severity.Debug, label, message, payload);
+        this.sendEvent(browser_1.Severity.Debug, label, message, payload);
     };
     /**
      * Отправляет событие логгирования и возвращает присвоеный ему идентификатор.
@@ -214,7 +206,7 @@ var Service = /** @class */ (function () {
      */
     Service.prototype.log = function (label, message, payload) {
         if (payload === void 0) { payload = {}; }
-        return this.sendEvent(browser_1.Severity.Log, label, message, payload);
+        this.sendEvent(browser_1.Severity.Log, label, message, payload);
     };
     /**
      * Отправляет информационное событие и возвращает присвоеный ему
@@ -225,7 +217,7 @@ var Service = /** @class */ (function () {
      */
     Service.prototype.info = function (label, message, payload) {
         if (payload === void 0) { payload = {}; }
-        return this.sendEvent(browser_1.Severity.Info, label, message, payload);
+        this.sendEvent(browser_1.Severity.Info, label, message, payload);
     };
     /**
      * Отправляет событие предпреждения и возвращает присвоеный ему идентификатор.
@@ -235,7 +227,7 @@ var Service = /** @class */ (function () {
      */
     Service.prototype.warning = function (label, message, payload) {
         if (payload === void 0) { payload = {}; }
-        return this.sendEvent(browser_1.Severity.Warning, label, message, payload);
+        this.sendEvent(browser_1.Severity.Warning, label, message, payload);
     };
     /**
      * Отправляет событие ошибки и возвращает присвоеный ему идентификатор.
@@ -245,7 +237,7 @@ var Service = /** @class */ (function () {
      */
     Service.prototype.error = function (label, message, payload) {
         if (payload === void 0) { payload = {}; }
-        return this.sendEvent(browser_1.Severity.Error, label, message, payload);
+        this.sendEvent(browser_1.Severity.Error, label, message, payload);
     };
     return Service;
 }());

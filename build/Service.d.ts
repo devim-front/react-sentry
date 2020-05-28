@@ -26,11 +26,6 @@ export declare class Service {
      */
     private readonly dsn?;
     /**
-     * Последний присвоенный идентификатор события (используется, когда сервис
-     * не подключён к sentry.io).
-     */
-    private lastId;
-    /**
      * Создает экземпляр сервиса. Сервис является синглтоном, не следует вызывать
      * конструктор напрямую.
      * @param dsn Идентификатор аккаунта. Если не указан, все события sentry
@@ -41,10 +36,6 @@ export declare class Service {
      * Закрывает соединение с sentry.
      */
     protected close(): Promise<void>;
-    /**
-     * Возвращает уникальный идентификатор события.
-     */
-    private getUniqueId;
     /**
      * Возвращает коллекцию пользовательских свойств экземпляра ошибки.
      * @param error Ошибка.
@@ -61,7 +52,7 @@ export declare class Service {
      * ей идентификатор.
      * @param error Ошибка.
      */
-    sendError(error: Error): string;
+    sendError(error: Error): void;
     /**
      * Отправляет в sentry событие с указанными параметрами и возвращает
      * присвоенный ему идентификатор.
@@ -70,21 +61,21 @@ export declare class Service {
      * @param message Описание события.
      * @param payload Дополнительные параметры события.
      */
-    protected sendEvent(level: Severity, label: string, message: string, payload: Record<string, any>): string;
+    protected sendEvent(level: Severity, label: string, message: string, payload: Record<string, any>): void;
     /**
      * Отправляет отладочное событие и возвращает присвоенный ему идентификатор.
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
      */
-    debug(label: string, message: string, payload?: Record<string, any>): string;
+    debug(label: string, message: string, payload?: Record<string, any>): void;
     /**
      * Отправляет событие логгирования и возвращает присвоеный ему идентификатор.
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
      */
-    log(label: string, message: string, payload?: Record<string, any>): string;
+    log(label: string, message: string, payload?: Record<string, any>): void;
     /**
      * Отправляет информационное событие и возвращает присвоеный ему
      * идентификатор.
@@ -92,19 +83,19 @@ export declare class Service {
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
      */
-    info(label: string, message: string, payload?: Record<string, any>): string;
+    info(label: string, message: string, payload?: Record<string, any>): void;
     /**
      * Отправляет событие предпреждения и возвращает присвоеный ему идентификатор.
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
      */
-    warning(label: string, message: string, payload?: Record<string, any>): string;
+    warning(label: string, message: string, payload?: Record<string, any>): void;
     /**
      * Отправляет событие ошибки и возвращает присвоеный ему идентификатор.
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
      */
-    error(label: string, message: string, payload?: Record<string, any>): string;
+    error(label: string, message: string, payload?: Record<string, any>): void;
 }

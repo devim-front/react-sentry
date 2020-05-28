@@ -72,12 +72,6 @@ export class Service {
   private readonly dsn?: string;
 
   /**
-   * Последний присвоенный идентификатор события (используется, когда сервис
-   * не подключён к sentry.io).
-   */
-  private lastId: number = 0;
-
-  /**
    * Создает экземпляр сервиса. Сервис является синглтоном, не следует вызывать
    * конструктор напрямую.
    * @param dsn Идентификатор аккаунта. Если не указан, все события sentry
@@ -86,12 +80,14 @@ export class Service {
   public constructor(dsn?: string) {
     this.dsn = dsn;
 
-    if (this.dsn != null) {
-      init({
-        dsn,
-        beforeSend: this.handleEvent.bind(this),
-      });
+    if (this.dsn == null) {
+      return this;
     }
+
+    init({
+      dsn,
+      beforeSend: this.handleEvent.bind(this),
+    });
   }
 
   /**
@@ -103,15 +99,6 @@ export class Service {
     }
 
     await close();
-  }
-
-  /**
-   * Возвращает уникальный идентификатор события.
-   */
-  private getUniqueId() {
-    const id = this.lastId + 1;
-    this.lastId = id;
-    return String(id);
   }
 
   /**
@@ -165,7 +152,11 @@ export class Service {
       this.getErrorProperties(error)
     );
 
-    return this.dsn == null ? this.getUniqueId() : captureException(error);
+    if (this.dsn == null) {
+      return;
+    }
+
+    captureException(error);
   }
 
   /**
@@ -184,14 +175,16 @@ export class Service {
   ) {
     console.debug(`sentry_${level}`, label, message, payload);
 
-    return this.dsn == null
-      ? this.getUniqueId()
-      : captureEvent({
-          message,
-          level,
-          tags: { label },
-          extra: payload,
-        });
+    if (this.dsn == null) {
+      return;
+    }
+
+    captureEvent({
+      message,
+      level,
+      tags: { label },
+      extra: payload,
+    });
   }
 
   /**
@@ -205,7 +198,7 @@ export class Service {
     message: string,
     payload: Record<string, any> = {}
   ) {
-    return this.sendEvent(Severity.Debug, label, message, payload);
+    this.sendEvent(Severity.Debug, label, message, payload);
   }
 
   /**
@@ -219,7 +212,7 @@ export class Service {
     message: string,
     payload: Record<string, any> = {}
   ) {
-    return this.sendEvent(Severity.Log, label, message, payload);
+    this.sendEvent(Severity.Log, label, message, payload);
   }
 
   /**
@@ -234,7 +227,7 @@ export class Service {
     message: string,
     payload: Record<string, any> = {}
   ) {
-    return this.sendEvent(Severity.Info, label, message, payload);
+    this.sendEvent(Severity.Info, label, message, payload);
   }
 
   /**
@@ -248,7 +241,7 @@ export class Service {
     message: string,
     payload: Record<string, any> = {}
   ) {
-    return this.sendEvent(Severity.Warning, label, message, payload);
+    this.sendEvent(Severity.Warning, label, message, payload);
   }
 
   /**
@@ -262,6 +255,6 @@ export class Service {
     message: string,
     payload: Record<string, any> = {}
   ) {
-    return this.sendEvent(Severity.Error, label, message, payload);
+    this.sendEvent(Severity.Error, label, message, payload);
   }
 }

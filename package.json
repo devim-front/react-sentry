@@ -10,6 +10,7 @@
   "scripts": {
     "build:drop": "rimraf build",
     "build:make": "tsc",
+    "build:docs": "run-s docs",
     "build": "run-s build:*",
     "test": "mocha -r ts-node/register ./src/index.test.ts",
     "docs:drop": "rimraf docs",

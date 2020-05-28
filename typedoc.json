@@ -12,5 +12,6 @@
   "hideSources": true,
   "theme": "bitbucket",
   "skipSidebar": true,
+  "namedAnchors": true,
   "plugin": ["typedoc-plugin-markdown"]
 }

@@ -26,7 +26,7 @@
 
 ## Methods
 
-###  debug
+### <a id="markdown-header-debug" name="markdown-header-debug"></a>  debug
 
 ▸ **debug**(`label`: string, `message`: string, `payload`: Record‹string, any›): *void*
 
@@ -44,7 +44,7 @@ Name | Type | Default | Description |
 
 ___
 
-###  error
+### <a id="markdown-header-error" name="markdown-header-error"></a>  error
 
 ▸ **error**(`label`: string, `message`: string, `payload`: Record‹string, any›): *void*
 
@@ -62,7 +62,7 @@ Name | Type | Default | Description |
 
 ___
 
-###  info
+### <a id="markdown-header-info" name="markdown-header-info"></a>  info
 
 ▸ **info**(`label`: string, `message`: string, `payload`: Record‹string, any›): *void*
 
@@ -80,7 +80,7 @@ Name | Type | Default | Description |
 
 ___
 
-###  log
+### <a id="markdown-header-log" name="markdown-header-log"></a>  log
 
 ▸ **log**(`label`: string, `message`: string, `payload`: Record‹string, any›): *void*
 
@@ -98,7 +98,7 @@ Name | Type | Default | Description |
 
 ___
 
-###  sendError
+### <a id="markdown-header-senderror" name="markdown-header-senderror"></a>  sendError
 
 ▸ **sendError**(`error`: Error): *void*
 
@@ -114,7 +114,7 @@ Name | Type | Description |
 
 ___
 
-###  warning
+### <a id="markdown-header-warning" name="markdown-header-warning"></a>  warning
 
 ▸ **warning**(`label`: string, `message`: string, `payload`: Record‹string, any›): *void*
 
@@ -132,7 +132,7 @@ Name | Type | Default | Description |
 
 ___
 
-### `Static` dispose
+### <a id="markdown-header-static-dispose" name="markdown-header-static-dispose"></a> `Static` dispose
 
 ▸ **dispose**(): *void*
 
@@ -142,7 +142,7 @@ ___
 
 ___
 
-### `Static` getInstance
+### <a id="markdown-header-static-getinstance" name="markdown-header-static-getinstance"></a> `Static` getInstance
 
 ▸ **getInstance**<**T**>(`this`: T)
 
@@ -160,7 +160,7 @@ Name | Type |
 
 ___
 
-### `Static` initialize
+### <a id="markdown-header-static-initialize" name="markdown-header-static-initialize"></a> `Static` initialize
 
 ▸ **initialize**(`dsn?`: undefined | string): *void*
 

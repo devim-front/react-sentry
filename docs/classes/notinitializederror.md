@@ -19,7 +19,7 @@
 
 ## Constructors
 
-###  constructor
+### <a id="markdown-header-constructor" name="markdown-header-constructor"></a>  constructor
 
 \+ **new NotInitializedError**(): *[NotInitializedError](notinitializederror.md)*
 

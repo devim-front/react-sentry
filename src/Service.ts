@@ -33,9 +33,12 @@ export class Service {
 
   /**
    * Инициализирует сервис.
-   * @param dsn Идентификатор аккаунта, предоставляемый в админ-панели Sentry.
+   * @param dsn Идентификатор аккаунта, предоставляемый в админ-панели sentry.
+   * Если не указан, то сервис будет запущен в демонстрационном режиме: вместо
+   * реальной отправки сообщений в sentry будет происходить их логгирование
+   * в браузерную консоль с уровнем debug.
    */
-  public static initialize(dsn: string) {
+  public static initialize(dsn?: string) {
     if (this.instance == null) {
       this.instance = new this(dsn);
       return;
@@ -72,6 +75,14 @@ export class Service {
   private readonly dsn?: string;
 
   /**
+   * True, если сервис действительно подключен к sentry, а не используется
+   * в демонстрационном режиме без реальной отправки событий.
+   */
+  private get isConnected() {
+    return this.dsn != null;
+  }
+
+  /**
    * Создает экземпляр сервиса. Сервис является синглтоном, не следует вызывать
    * конструктор напрямую.
    * @param dsn Идентификатор аккаунта. Если не указан, все события sentry
@@ -94,11 +105,9 @@ export class Service {
    * Закрывает соединение с sentry.
    */
   protected async close() {
-    if (this.dsn == null) {
-      return;
+    if (this.isConnected) {
+      await close();
     }
-
-    await close();
   }
 
   /**
@@ -141,27 +150,25 @@ export class Service {
   }
 
   /**
-   * Принудительно отправляет указанную ошибку в sentry и возвращает присвоенный
-   * ей идентификатор.
+   * Принудительно отправляет указанную ошибку в sentry.
    * @param error Ошибка.
    */
   public sendError(error: Error) {
-    console.debug(
-      `sentry_exception`,
-      error.message,
-      this.getErrorProperties(error)
-    );
-
-    if (this.dsn == null) {
-      return;
+    if (process.env.NODE_ENV !== 'production') {
+      console.debug(
+        `sentry_exception`,
+        error.message,
+        this.getErrorProperties(error)
+      );
     }
 
-    captureException(error);
+    if (this.isConnected) {
+      captureException(error);
+    }
   }
 
   /**
-   * Отправляет в sentry событие с указанными параметрами и возвращает
-   * присвоенный ему идентификатор.
+   * Отправляет в sentry событие с указанными параметрами.
    * @param level Уровень события.
    * @param label Ярлык события.
    * @param message Описание события.
@@ -173,22 +180,22 @@ export class Service {
     message: string,
     payload: Record<string, any>
   ) {
-    console.debug(`sentry_${level}`, label, message, payload);
-
-    if (this.dsn == null) {
-      return;
+    if (process.env.NODE_ENV !== 'production') {
+      console.debug(`sentry_${level}`, label, message, payload);
     }
 
-    captureEvent({
-      message,
-      level,
-      tags: { label },
-      extra: payload,
-    });
+    if (this.isConnected) {
+      captureEvent({
+        message,
+        level,
+        tags: { label },
+        extra: payload,
+      });
+    }
   }
 
   /**
-   * Отправляет отладочное событие и возвращает присвоенный ему идентификатор.
+   * Отправляет отладочное событие.
    * @param label Метка события.
    * @param message Текст события.
    * @param payload Дополнительные параметры события.
@@ -202,7 +209,7 @@ export class Service {
   }
 
   /**
-   * Отправляет событие логгирования и возвращает присвоеный ему идентификатор.
+   * Отправляет событие логгирования.
    * @param label Метка события.
    * @param message Текст события.
    * @param payload Дополнительные параметры события.
@@ -216,8 +223,7 @@ export class Service {
   }
 
   /**
-   * Отправляет информационное событие и возвращает присвоеный ему
-   * идентификатор.
+   * Отправляет информационное событие.
    * @param label Метка события.
    * @param message Текст события.
    * @param payload Дополнительные параметры события.
@@ -231,7 +237,7 @@ export class Service {
   }
 
   /**
-   * Отправляет событие предпреждения и возвращает присвоеный ему идентификатор.
+   * Отправляет событие предпреждения.
    * @param label Метка события.
    * @param message Текст события.
    * @param payload Дополнительные параметры события.
@@ -245,7 +251,7 @@ export class Service {
   }
 
   /**
-   * Отправляет событие ошибки и возвращает присвоеный ему идентификатор.
+   * Отправляет событие ошибки.
    * @param label Метка события.
    * @param message Текст события.
    * @param payload Дополнительные параметры события.

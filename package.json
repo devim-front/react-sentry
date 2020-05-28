@@ -29,6 +29,7 @@
     "@types/jsdom": "^16.2.3",
     "@types/mocha": "^7.0.2",
     "chai": "^4.2.0",
+    "husky": "^4.2.5",
     "jsdom": "^16.2.2",
     "jsdom-global": "^3.0.2",
     "mocha": "^7.2.0",

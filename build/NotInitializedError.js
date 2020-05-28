@@ -25,7 +25,7 @@ var NotInitializedError = /** @class */ (function (_super) {
      * Создает экземпляр ошибки.
      */
     function NotInitializedError() {
-        return _super.call(this, 'Service is not initialized. Please use Service.initialize() before') || this;
+        return _super.call(this, 'Service is not initialized. Please call Service.initialize() before usage.') || this;
     }
     return NotInitializedError;
 }(BaseError_1.BaseError));

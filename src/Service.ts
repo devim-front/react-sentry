@@ -159,14 +159,13 @@ export class Service {
    * @param error Ошибка.
    */
   public sendError(error: Error) {
-    if (this.dsn != null) {
-      return captureException(error);
-    }
+    console.debug(
+      `sentry_exception`,
+      error.message,
+      this.getErrorProperties(error)
+    );
 
-    const payload = this.getErrorProperties(error);
-    console.debug(`sentry_exception`, error.message, payload);
-
-    return this.getUniqueId();
+    return this.dsn == null ? this.getUniqueId() : captureException(error);
   }
 
   /**
@@ -183,17 +182,16 @@ export class Service {
     message: string,
     payload: Record<string, any>
   ) {
-    if (this.dsn == null) {
-      console.debug(`sentry_${level}`, label, message, payload);
-      return this.getUniqueId();
-    }
+    console.debug(`sentry_${level}`, label, message, payload);
 
-    return captureEvent({
-      message,
-      level,
-      tags: { label },
-      extra: payload,
-    });
+    return this.dsn == null
+      ? this.getUniqueId()
+      : captureEvent({
+          message,
+          level,
+          tags: { label },
+          extra: payload,
+        });
   }
 
   /**

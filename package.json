@@ -7,9 +7,7 @@
     "build:drop": "rimraf build",
     "build:make": "tsc",
     "build": "run-s build:*",
-    "test:build": "run-s build",
-    "test:start": "mocha index.test",
-    "test": "run-s test:*",
+    "test": "mocha -r ts-node/register ./src/index.test.ts",
     "release:make": "run-s build",
     "release:push": "np",
     "release:done": "publish",
@@ -33,6 +31,7 @@
     "npm-run-all": "^4.1.5",
     "prettier": "^2.0.5",
     "rimraf": "^3.0.2",
+    "ts-node": "^8.10.1",
     "typescript": "^3.9.3"
   },
   "dependencies": {

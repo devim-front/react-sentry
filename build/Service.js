@@ -58,10 +58,22 @@ var Service = /** @class */ (function () {
     /**
      * Создает экземпляр сервиса. Сервис является синглтоном, не следует вызывать
      * конструктор напрямую.
-     * @param dsn Идентификатор аккаунта.
+     * @param dsn Идентификатор аккаунта. Если не указан, все события sentry
+     * буду отправляться в браузерную консоль с уровнем 'debug'.
      */
     function Service(dsn) {
-        browser_1.init({ dsn: dsn, beforeSend: this.handleEvent.bind(this) });
+        /**
+         * Последний присвоенный идентификатор события (используется, когда сервис
+         * не подключён к sentry.io).
+         */
+        this.lastId = 0;
+        this.dsn = dsn;
+        if (this.dsn != null) {
+            browser_1.init({
+                dsn: dsn,
+                beforeSend: this.handleEvent.bind(this),
+            });
+        }
     }
     /**
      * Возвращает экземпляр синглтона.
@@ -77,27 +89,71 @@ var Service = /** @class */ (function () {
      * @param dsn Идентификатор аккаунта, предоставляемый в админ-панели Sentry.
      */
     Service.initialize = function (dsn) {
+        if (this.instance == null) {
+            this.instance = new this(dsn);
+            return;
+        }
+        var instance = this.getInstance();
+        if (instance.dsn === dsn) {
+            return;
+        }
+        this.dispose();
         this.instance = new this(dsn);
     };
     /**
-     * Удаляет сохраненную сущность синглтона.
+     * Останавливает работу сервиса и высвобождает все занятые ресурсы.
      */
-    Service.deleteInstance = function () {
+    Service.dispose = function () {
+        if (this.instance == null) {
+            return;
+        }
+        var instance = this.getInstance();
+        this.instance = undefined;
+        instance.close();
+    };
+    /**
+     * Закрывает соединение с sentry.
+     */
+    Service.prototype.close = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (this.instance == null) {
+                        if (this.dsn == null) {
                             return [2 /*return*/];
                         }
-                        return [4 /*yield*/, this.getInstance().dispose()];
+                        return [4 /*yield*/, browser_1.close()];
                     case 1:
                         _a.sent();
-                        this.instance = undefined;
                         return [2 /*return*/];
                 }
             });
         });
+    };
+    /**
+     * Возвращает уникальный идентификатор события.
+     */
+    Service.prototype.getUniqueId = function () {
+        var id = this.lastId + 1;
+        this.lastId = id;
+        return String(id);
+    };
+    /**
+     * Возвращает коллекцию пользовательских свойств экземпляра ошибки.
+     * @param error Ошибка.
+     */
+    Service.prototype.getErrorProperties = function (error) {
+        var properties = {};
+        var keys = Object.keys(error);
+        for (var i = 0; i < keys.length; i += 1) {
+            var key = keys[i];
+            var isCustom = key !== 'name' && Object.prototype.hasOwnProperty.call(error, key);
+            if (isCustom) {
+                // @ts-ignore
+                properties[key] = error[key];
+            }
+        }
+        return properties;
     };
     /**
      * Преобразует каждое отправленное через сервис событие.
@@ -106,25 +162,20 @@ var Service = /** @class */ (function () {
      */
     Service.prototype.handleEvent = function (event, hint) {
         var error = hint.originalException;
-        if (error == null || !(error instanceof Error)) {
-            return event;
+        if (error instanceof Error) {
+            var extra = this.getErrorProperties(error);
+            return __assign(__assign({}, event), { extra: extra });
         }
-        var extra = {};
-        var keys = Object.keys(error);
-        for (var i = 0; i < keys.length; i += 1) {
-            var key = keys[i];
-            if (Object.prototype.hasOwnProperty.call(error, key)) {
-                // @ts-ignore
-                extra[key] = error[key];
-            }
-        }
-        return __assign(__assign({}, event), { extra: extra });
+        return event;
     };
     /**
-     * Закрывает соединение с sentry.
+     * Принудительно отправляет указанную ошибку в sentry и возвращает присвоенный
+     * ей идентификатор.
+     * @param error Ошибка.
      */
-    Service.prototype.dispose = function () {
-        return browser_1.close();
+    Service.prototype.sendError = function (error) {
+        console.debug("sentry_exception", error.message, this.getErrorProperties(error));
+        return this.dsn == null ? this.getUniqueId() : browser_1.captureException(error);
     };
     /**
      * Отправляет в sentry событие с указанными параметрами и возвращает
@@ -135,12 +186,15 @@ var Service = /** @class */ (function () {
      * @param payload Дополнительные параметры события.
      */
     Service.prototype.sendEvent = function (level, label, message, payload) {
-        return browser_1.captureEvent({
-            message: message,
-            level: level,
-            tags: { label: label },
-            extra: payload,
-        });
+        console.debug("sentry_" + level, label, message, payload);
+        return this.dsn == null
+            ? this.getUniqueId()
+            : browser_1.captureEvent({
+                message: message,
+                level: level,
+                tags: { label: label },
+                extra: payload,
+            });
     };
     /**
      * Отправляет отладочное событие и возвращает присвоенный ему идентификатор.
@@ -192,14 +246,6 @@ var Service = /** @class */ (function () {
     Service.prototype.error = function (label, message, payload) {
         if (payload === void 0) { payload = {}; }
         return this.sendEvent(browser_1.Severity.Error, label, message, payload);
-    };
-    /**
-     * Принудительно отправляет указанную ошибку в sentry и возвращает присвоенный
-     * ей идентификатор.
-     * @param error Ошибка.
-     */
-    Service.prototype.sendError = function (error) {
-        return browser_1.captureException(error);
     };
     return Service;
 }());

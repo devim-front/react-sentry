@@ -8,6 +8,7 @@
     "jsx": "react",
     "moduleResolution": "node",
     "baseUrl": "src",
+    "declaration": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
@@ -21,5 +22,6 @@
     "strictNullChecks": true,
     "locale": "ru"
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["src/**/*.test.*"]
 }

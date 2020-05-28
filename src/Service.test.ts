@@ -11,7 +11,7 @@ describe('Service', () => {
   });
 
   it('deleteInstance() should works well', () => {
-    return Service.deleteInstance();
+    Service.dispose();
   });
 
   it('getInstance() should throws error', () => {

@@ -14,9 +14,12 @@ export declare class Service {
     static getInstance<T extends typeof Service>(this: T): InstanceType<T>;
     /**
      * Инициализирует сервис.
-     * @param dsn Идентификатор аккаунта, предоставляемый в админ-панели Sentry.
+     * @param dsn Идентификатор аккаунта, предоставляемый в админ-панели sentry.
+     * Если не указан, то сервис будет запущен в демонстрационном режиме: вместо
+     * реальной отправки сообщений в sentry будет происходить их логгирование
+     * в браузерную консоль с уровнем debug.
      */
-    static initialize(dsn: string): void;
+    static initialize(dsn?: string): void;
     /**
      * Останавливает работу сервиса и высвобождает все занятые ресурсы.
      */
@@ -25,6 +28,11 @@ export declare class Service {
      * Идентификатор аккаунта.
      */
     private readonly dsn?;
+    /**
+     * True, если сервис действительно подключен к sentry, а не используется
+     * в демонстрационном режиме без реальной отправки событий.
+     */
+    private get isConnected();
     /**
      * Создает экземпляр сервиса. Сервис является синглтоном, не следует вызывать
      * конструктор напрямую.
@@ -48,14 +56,12 @@ export declare class Service {
      */
     protected handleEvent(event: Event, hint: EventHint): Event;
     /**
-     * Принудительно отправляет указанную ошибку в sentry и возвращает присвоенный
-     * ей идентификатор.
+     * Принудительно отправляет указанную ошибку в sentry.
      * @param error Ошибка.
      */
     sendError(error: Error): void;
     /**
-     * Отправляет в sentry событие с указанными параметрами и возвращает
-     * присвоенный ему идентификатор.
+     * Отправляет в sentry событие с указанными параметрами.
      * @param level Уровень события.
      * @param label Ярлык события.
      * @param message Описание события.
@@ -63,36 +69,35 @@ export declare class Service {
      */
     protected sendEvent(level: Severity, label: string, message: string, payload: Record<string, any>): void;
     /**
-     * Отправляет отладочное событие и возвращает присвоенный ему идентификатор.
+     * Отправляет отладочное событие.
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
      */
     debug(label: string, message: string, payload?: Record<string, any>): void;
     /**
-     * Отправляет событие логгирования и возвращает присвоеный ему идентификатор.
+     * Отправляет событие логгирования.
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
      */
     log(label: string, message: string, payload?: Record<string, any>): void;
     /**
-     * Отправляет информационное событие и возвращает присвоеный ему
-     * идентификатор.
+     * Отправляет информационное событие.
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
      */
     info(label: string, message: string, payload?: Record<string, any>): void;
     /**
-     * Отправляет событие предпреждения и возвращает присвоеный ему идентификатор.
+     * Отправляет событие предпреждения.
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
      */
     warning(label: string, message: string, payload?: Record<string, any>): void;
     /**
-     * Отправляет событие ошибки и возвращает присвоеный ему идентификатор.
+     * Отправляет событие ошибки.
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.

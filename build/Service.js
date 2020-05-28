@@ -82,7 +82,10 @@ var Service = /** @class */ (function () {
     };
     /**
      * Инициализирует сервис.
-     * @param dsn Идентификатор аккаунта, предоставляемый в админ-панели Sentry.
+     * @param dsn Идентификатор аккаунта, предоставляемый в админ-панели sentry.
+     * Если не указан, то сервис будет запущен в демонстрационном режиме: вместо
+     * реальной отправки сообщений в sentry будет происходить их логгирование
+     * в браузерную консоль с уровнем debug.
      */
     Service.initialize = function (dsn) {
         if (this.instance == null) {
@@ -107,6 +110,17 @@ var Service = /** @class */ (function () {
         this.instance = undefined;
         instance.close();
     };
+    Object.defineProperty(Service.prototype, "isConnected", {
+        /**
+         * True, если сервис действительно подключен к sentry, а не используется
+         * в демонстрационном режиме без реальной отправки событий.
+         */
+        get: function () {
+            return this.dsn != null;
+        },
+        enumerable: false,
+        configurable: true
+    });
     /**
      * Закрывает соединение с sentry.
      */
@@ -115,13 +129,12 @@ var Service = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (this.dsn == null) {
-                            return [2 /*return*/];
-                        }
+                        if (!this.isConnected) return [3 /*break*/, 2];
                         return [4 /*yield*/, browser_1.close()];
                     case 1:
                         _a.sent();
-                        return [2 /*return*/];
+                        _a.label = 2;
+                    case 2: return [2 /*return*/];
                 }
             });
         });
@@ -157,39 +170,39 @@ var Service = /** @class */ (function () {
         return event;
     };
     /**
-     * Принудительно отправляет указанную ошибку в sentry и возвращает присвоенный
-     * ей идентификатор.
+     * Принудительно отправляет указанную ошибку в sentry.
      * @param error Ошибка.
      */
     Service.prototype.sendError = function (error) {
-        console.debug("sentry_exception", error.message, this.getErrorProperties(error));
-        if (this.dsn == null) {
-            return;
+        if (process.env.NODE_ENV !== 'production') {
+            console.debug("sentry_exception", error.message, this.getErrorProperties(error));
         }
-        browser_1.captureException(error);
+        if (this.isConnected) {
+            browser_1.captureException(error);
+        }
     };
     /**
-     * Отправляет в sentry событие с указанными параметрами и возвращает
-     * присвоенный ему идентификатор.
+     * Отправляет в sentry событие с указанными параметрами.
      * @param level Уровень события.
      * @param label Ярлык события.
      * @param message Описание события.
      * @param payload Дополнительные параметры события.
      */
     Service.prototype.sendEvent = function (level, label, message, payload) {
-        console.debug("sentry_" + level, label, message, payload);
-        if (this.dsn == null) {
-            return;
+        if (process.env.NODE_ENV !== 'production') {
+            console.debug("sentry_" + level, label, message, payload);
         }
-        browser_1.captureEvent({
-            message: message,
-            level: level,
-            tags: { label: label },
-            extra: payload,
-        });
+        if (this.isConnected) {
+            browser_1.captureEvent({
+                message: message,
+                level: level,
+                tags: { label: label },
+                extra: payload,
+            });
+        }
     };
     /**
-     * Отправляет отладочное событие и возвращает присвоенный ему идентификатор.
+     * Отправляет отладочное событие.
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
@@ -199,7 +212,7 @@ var Service = /** @class */ (function () {
         this.sendEvent(browser_1.Severity.Debug, label, message, payload);
     };
     /**
-     * Отправляет событие логгирования и возвращает присвоеный ему идентификатор.
+     * Отправляет событие логгирования.
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
@@ -209,8 +222,7 @@ var Service = /** @class */ (function () {
         this.sendEvent(browser_1.Severity.Log, label, message, payload);
     };
     /**
-     * Отправляет информационное событие и возвращает присвоеный ему
-     * идентификатор.
+     * Отправляет информационное событие.
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
@@ -220,7 +232,7 @@ var Service = /** @class */ (function () {
         this.sendEvent(browser_1.Severity.Info, label, message, payload);
     };
     /**
-     * Отправляет событие предпреждения и возвращает присвоеный ему идентификатор.
+     * Отправляет событие предпреждения.
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
@@ -230,7 +242,7 @@ var Service = /** @class */ (function () {
         this.sendEvent(browser_1.Severity.Warning, label, message, payload);
     };
     /**
-     * Отправляет событие ошибки и возвращает присвоеный ему идентификатор.
+     * Отправляет событие ошибки.
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.

@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "typeRoots": ["node_modules/@types", "src/@types"],
+    "module": "commonjs",
+    "target": "es5",
+    "outDir": "./build",
+    "jsx": "react",
+    "moduleResolution": "node",
+    "baseUrl": "src",
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "experimentalDecorators": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strictNullChecks": true,
+    "locale": "ru"
+  },
+  "include": ["src/**/*"]
+}

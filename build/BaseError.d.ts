@@ -1,5 +1,6 @@
 /**
  * Базовый класс ошибки сервиса.
+ * @internal
  */
 export declare class BaseError extends Error {
     /**

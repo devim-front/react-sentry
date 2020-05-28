@@ -16,6 +16,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BaseError = void 0;
 /**
  * Базовый класс ошибки сервиса.
+ * @internal
  */
 var BaseError = /** @class */ (function (_super) {
     __extends(BaseError, _super);

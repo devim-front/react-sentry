@@ -12,6 +12,9 @@
     "build:make": "tsc",
     "build": "run-s build:*",
     "test": "mocha -r ts-node/register ./src/index.test.ts",
+    "docs:drop": "rimraf docs",
+    "docs:make": "typedoc --options typedoc.json",
+    "docs": "run-s docs:*",
     "release:make": "run-s build",
     "release:push": "np",
     "release:done": "npm publish",
@@ -38,6 +41,8 @@
     "prettier": "^2.0.5",
     "rimraf": "^3.0.2",
     "ts-node": "^8.10.1",
+    "typedoc": "^0.17.7",
+    "typedoc-plugin-markdown": "^2.2.17",
     "typescript": "^3.9.3"
   },
   "dependencies": {

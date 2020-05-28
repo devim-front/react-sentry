@@ -1,6 +1,6 @@
 import { Event, Severity, EventHint } from '@sentry/browser';
 /**
- * Сервис, предоставляющий методы для интеграции с Sentry.IO.
+ * Сервис, предоставляющий методы для интеграции с sentry.io.
  * @see https://sentry.io/
  */
 export declare class Service {

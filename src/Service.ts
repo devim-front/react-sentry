@@ -11,7 +11,7 @@ import {
 import { NotInitializedError } from './NotInitializedError';
 
 /**
- * Сервис, предоставляющий методы для интеграции с Sentry.IO.
+ * Сервис, предоставляющий методы для интеграции с sentry.io.
  * @see https://sentry.io/
  */
 export class Service {

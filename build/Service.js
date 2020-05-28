@@ -51,7 +51,7 @@ exports.Service = void 0;
 var browser_1 = require("@sentry/browser");
 var NotInitializedError_1 = require("./NotInitializedError");
 /**
- * Сервис, предоставляющий методы для интеграции с Sentry.IO.
+ * Сервис, предоставляющий методы для интеграции с sentry.io.
  * @see https://sentry.io/
  */
 var Service = /** @class */ (function () {

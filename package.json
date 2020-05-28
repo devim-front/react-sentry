@@ -3,6 +3,10 @@
   "version": "1.0.2",
   "description": "Библиотека для интеграции приложения на React с sentry.io",
   "main": "index.js",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
   "scripts": {
     "build:drop": "rimraf build",
     "build:make": "tsc",

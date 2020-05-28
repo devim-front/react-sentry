@@ -10,7 +10,7 @@
     "test": "mocha -r ts-node/register ./src/index.test.ts",
     "release:make": "run-s build",
     "release:push": "np",
-    "release:done": "publish",
+    "release:done": "npm publish",
     "release": "run-s release:*"
   },
   "keywords": [

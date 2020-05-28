@@ -1,6 +1,6 @@
 {
   "name": "@devim-front/react-sentry",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Библиотека для интеграции приложения на React с sentry.io",
   "main": "index.js",
   "scripts": {

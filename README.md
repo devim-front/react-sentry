@@ -22,4 +22,4 @@ npm i -S @devim-front/react-sentry
 
 ## API
 
-Раздел находится в стадии наполнения. Use the source, Luke!
+Документация находится [в этом разделе](https://github.com/devim-front/react-sentry/tree/master/docs).

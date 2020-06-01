@@ -1,68 +1,78 @@
 import { Event, Severity, EventHint } from '@sentry/browser';
+import { StrictService } from '@devim-front/service';
 /**
  * Сервис, предоставляющий методы для интеграции с sentry.io.
+ *
  * @see https://sentry.io/
  */
-export declare class Service {
+export declare class Service extends StrictService {
     /**
-     * Сохраненная сущность синглтона.
+     * Инициализирует сервис с указанным Client DSN (подробнее об этом параметре
+     * смотри в документации sentry.io).
+     *
+     * @param dsn Client DSN. Если не указать этот идентификатор, все события
+     * сервиса будут отправляться в браузерную консоль с уровнем debug и
+     * меткой 'sentry' вместо реальной отправки на сервер sentry.io.
      */
-    private static instance;
+    static init(dsn?: string): void;
     /**
-     * Возвращает экземпляр синглтона.
-     */
-    static getInstance<T extends typeof Service>(this: T): InstanceType<T>;
-    /**
-     * Инициализирует сервис.
-     * @param dsn Идентификатор аккаунта, предоставляемый в админ-панели sentry.
-     * Если не указан, то сервис будет запущен в демонстрационном режиме: вместо
-     * реальной отправки сообщений в sentry будет происходить их логгирование
-     * в браузерную консоль с уровнем debug.
-     */
-    static initialize(dsn?: string): void;
-    /**
-     * Останавливает работу сервиса и высвобождает все занятые ресурсы.
-     */
-    static dispose(): void;
-    /**
-     * Идентификатор аккаунта.
+     * Client DSN.
      */
     private readonly dsn?;
     /**
-     * True, если сервис действительно подключен к sentry, а не используется
-     * в демонстрационном режиме без реальной отправки событий.
+     * Указывает, что сервис подключён sentry и может использовать его API.
      */
-    private get isConnected();
+    protected get isConnected(): boolean;
     /**
-     * Создает экземпляр сервиса. Сервис является синглтоном, не следует вызывать
-     * конструктор напрямую.
-     * @internal
-     * @param dsn Идентификатор аккаунта. Если не указан, все события sentry
-     * буду отправляться в браузерную консоль с уровнем 'debug'.
+     * Создает экземпляр сервиса с указанным параметрами.
+     *
+     * @param dsn Client DSN.
      */
     constructor(dsn?: string);
     /**
-     * Закрывает соединение с sentry.
+     * @inheritdoc
      */
-    protected close(): Promise<void>;
+    dispose(): void;
     /**
      * Возвращает коллекцию пользовательских свойств экземпляра ошибки.
+     *
      * @param error Ошибка.
      */
     protected getErrorProperties(error: Error): Record<string, any>;
     /**
+     * Если передано событие ошибки, собирает пользовательские свойства из
+     * экземпляра исключения и присоединяет их к дополнительным данным события.
+     * В противном случае возвращает исходное событие.
+     *
+     * @param event Событие.
+     * @param hint Дополнительная информация о событии.
+     */
+    private transformErrorEvent;
+    /**
      * Преобразует каждое отправленное через сервис событие.
-     * @param event События.
+     *
+     * @param event Событие.
      * @param hint Дополнительная информация о событии.
      */
     protected handleEvent(event: Event, hint: EventHint): Event;
     /**
+     * Логгирует событие sentry в браузерную консоль, если код работает в режиме
+     * отладки.
+     *
+     * @param level Уровень сообщени.
+     * @param message Сообщение.
+     * @param payload Параметры события.
+     */
+    protected writeToConsole(level: string, message: string, payload: any): void;
+    /**
      * Принудительно отправляет указанную ошибку в sentry.
+     *
      * @param error Ошибка.
      */
     sendError(error: Error): void;
     /**
      * Отправляет в sentry событие с указанными параметрами.
+     *
      * @param level Уровень события.
      * @param label Ярлык события.
      * @param message Описание события.
@@ -71,6 +81,7 @@ export declare class Service {
     protected sendEvent(level: Severity, label: string, message: string, payload: Record<string, any>): void;
     /**
      * Отправляет отладочное событие.
+     *
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
@@ -78,6 +89,7 @@ export declare class Service {
     debug(label: string, message: string, payload?: Record<string, any>): void;
     /**
      * Отправляет событие логгирования.
+     *
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
@@ -85,6 +97,7 @@ export declare class Service {
     log(label: string, message: string, payload?: Record<string, any>): void;
     /**
      * Отправляет информационное событие.
+     *
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
@@ -92,6 +105,7 @@ export declare class Service {
     info(label: string, message: string, payload?: Record<string, any>): void;
     /**
      * Отправляет событие предпреждения.
+     *
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
@@ -99,6 +113,7 @@ export declare class Service {
     warning(label: string, message: string, payload?: Record<string, any>): void;
     /**
      * Отправляет событие ошибки.
+     *
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.

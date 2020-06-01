@@ -7,89 +7,46 @@ import {
   EventHint,
   close,
 } from '@sentry/browser';
-
-import { NotInitializedError } from './NotInitializedError';
+import { StrictService } from '@devim-front/service';
 
 /**
  * Сервис, предоставляющий методы для интеграции с sentry.io.
+ *
  * @see https://sentry.io/
  */
-export class Service {
+export class Service extends StrictService {
   /**
-   * Сохраненная сущность синглтона.
+   * Инициализирует сервис с указанным Client DSN (подробнее об этом параметре
+   * смотри в документации sentry.io).
+   *
+   * @param dsn Client DSN. Если не указать этот идентификатор, все события
+   * сервиса будут отправляться в браузерную консоль с уровнем debug и
+   * меткой 'sentry' вместо реальной отправки на сервер sentry.io.
    */
-  private static instance: any;
-
-  /**
-   * Возвращает экземпляр синглтона.
-   */
-  public static getInstance<T extends typeof Service>(this: T) {
-    if (this.instance == null) {
-      throw new NotInitializedError();
-    }
-
-    return this.instance as InstanceType<T>;
+  public static init(dsn?: string) {
+    super.init(dsn);
   }
 
   /**
-   * Инициализирует сервис.
-   * @param dsn Идентификатор аккаунта, предоставляемый в админ-панели sentry.
-   * Если не указан, то сервис будет запущен в демонстрационном режиме: вместо
-   * реальной отправки сообщений в sentry будет происходить их логгирование
-   * в браузерную консоль с уровнем debug.
-   */
-  public static initialize(dsn?: string) {
-    if (this.instance == null) {
-      this.instance = new this(dsn);
-      return;
-    }
-
-    const instance = this.getInstance();
-
-    if (instance.dsn === dsn) {
-      return;
-    }
-
-    this.dispose();
-
-    this.instance = new this(dsn);
-  }
-
-  /**
-   * Останавливает работу сервиса и высвобождает все занятые ресурсы.
-   */
-  public static dispose() {
-    if (this.instance == null) {
-      return;
-    }
-
-    const instance = this.getInstance();
-    this.instance = undefined;
-
-    instance.close();
-  }
-
-  /**
-   * Идентификатор аккаунта.
+   * Client DSN.
    */
   private readonly dsn?: string;
 
   /**
-   * True, если сервис действительно подключен к sentry, а не используется
-   * в демонстрационном режиме без реальной отправки событий.
+   * Указывает, что сервис подключён sentry и может использовать его API.
    */
-  private get isConnected() {
+  protected get isConnected() {
     return this.dsn != null;
   }
 
   /**
-   * Создает экземпляр сервиса. Сервис является синглтоном, не следует вызывать
-   * конструктор напрямую.
-   * @internal
-   * @param dsn Идентификатор аккаунта. Если не указан, все события sentry
-   * буду отправляться в браузерную консоль с уровнем 'debug'.
+   * Создает экземпляр сервиса с указанным параметрами.
+   *
+   * @param dsn Client DSN.
    */
   public constructor(dsn?: string) {
+    super(dsn);
+
     this.dsn = dsn;
 
     if (this.dsn == null) {
@@ -103,16 +60,19 @@ export class Service {
   }
 
   /**
-   * Закрывает соединение с sentry.
+   * @inheritdoc
    */
-  protected async close() {
+  public dispose() {
+    super.dispose();
+
     if (this.isConnected) {
-      await close();
+      close();
     }
   }
 
   /**
    * Возвращает коллекцию пользовательских свойств экземпляра ошибки.
+   *
    * @param error Ошибка.
    */
   protected getErrorProperties(error: Error) {
@@ -135,33 +95,72 @@ export class Service {
   }
 
   /**
-   * Преобразует каждое отправленное через сервис событие.
-   * @param event События.
+   * Если передано событие ошибки, собирает пользовательские свойства из
+   * экземпляра исключения и присоединяет их к дополнительным данным события.
+   * В противном случае возвращает исходное событие.
+   *
+   * @param event Событие.
    * @param hint Дополнительная информация о событии.
    */
-  protected handleEvent(event: Event, hint: EventHint) {
+  private transformErrorEvent(event: Event, hint: EventHint) {
     const error = hint.originalException;
 
     if (error instanceof Error) {
-      const extra = this.getErrorProperties(error);
-      return { ...event, extra };
+      const nextExtra = this.getErrorProperties(error);
+      const prevExtra = event.extra || {};
+
+      return {
+        ...event,
+        extra: {
+          ...prevExtra,
+          ...nextExtra,
+        },
+      };
     }
 
     return event;
   }
 
   /**
+   * Преобразует каждое отправленное через сервис событие.
+   *
+   * @param event Событие.
+   * @param hint Дополнительная информация о событии.
+   */
+  protected handleEvent(event: Event, hint: EventHint) {
+    return this.transformErrorEvent(event, hint);
+  }
+
+  /**
+   * Логгирует событие sentry в браузерную консоль, если код работает в режиме
+   * отладки.
+   *
+   * @param level Уровень сообщени.
+   * @param message Сообщение.
+   * @param payload Параметры события.
+   */
+  protected writeToConsole(level: string, message: string, payload: any) {
+    if (
+      process.env.NODE_ENV === 'production' ||
+      typeof window === 'undefined'
+    ) {
+      return;
+    }
+
+    console.debug(`sentry_${level}`, message, payload);
+  }
+
+  /**
    * Принудительно отправляет указанную ошибку в sentry.
+   *
    * @param error Ошибка.
    */
   public sendError(error: Error) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.debug(
-        `sentry_exception`,
-        error.message,
-        this.getErrorProperties(error)
-      );
-    }
+    this.writeToConsole(
+      'exception',
+      error.message,
+      this.getErrorProperties(error)
+    );
 
     if (this.isConnected) {
       captureException(error);
@@ -170,6 +169,7 @@ export class Service {
 
   /**
    * Отправляет в sentry событие с указанными параметрами.
+   *
    * @param level Уровень события.
    * @param label Ярлык события.
    * @param message Описание события.
@@ -181,9 +181,7 @@ export class Service {
     message: string,
     payload: Record<string, any>
   ) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.debug(`sentry_${level}`, label, message, payload);
-    }
+    this.writeToConsole(level, message, { label, extra: payload });
 
     if (this.isConnected) {
       captureEvent({
@@ -197,6 +195,7 @@ export class Service {
 
   /**
    * Отправляет отладочное событие.
+   *
    * @param label Метка события.
    * @param message Текст события.
    * @param payload Дополнительные параметры события.
@@ -211,6 +210,7 @@ export class Service {
 
   /**
    * Отправляет событие логгирования.
+   *
    * @param label Метка события.
    * @param message Текст события.
    * @param payload Дополнительные параметры события.
@@ -225,6 +225,7 @@ export class Service {
 
   /**
    * Отправляет информационное событие.
+   *
    * @param label Метка события.
    * @param message Текст события.
    * @param payload Дополнительные параметры события.
@@ -239,6 +240,7 @@ export class Service {
 
   /**
    * Отправляет событие предпреждения.
+   *
    * @param label Метка события.
    * @param message Текст события.
    * @param payload Дополнительные параметры события.
@@ -253,6 +255,7 @@ export class Service {
 
   /**
    * Отправляет событие ошибки.
+   *
    * @param label Метка события.
    * @param message Текст события.
    * @param payload Дополнительные параметры события.

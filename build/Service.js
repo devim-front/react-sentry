@@ -1,4 +1,17 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -10,111 +23,48 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Service = void 0;
 var browser_1 = require("@sentry/browser");
-var NotInitializedError_1 = require("./NotInitializedError");
+var service_1 = require("@devim-front/service");
 /**
  * Сервис, предоставляющий методы для интеграции с sentry.io.
+ *
  * @see https://sentry.io/
  */
-var Service = /** @class */ (function () {
+var Service = /** @class */ (function (_super) {
+    __extends(Service, _super);
     /**
-     * Создает экземпляр сервиса. Сервис является синглтоном, не следует вызывать
-     * конструктор напрямую.
-     * @internal
-     * @param dsn Идентификатор аккаунта. Если не указан, все события sentry
-     * буду отправляться в браузерную консоль с уровнем 'debug'.
+     * Создает экземпляр сервиса с указанным параметрами.
+     *
+     * @param dsn Client DSN.
      */
     function Service(dsn) {
-        this.dsn = dsn;
-        if (this.dsn == null) {
-            return this;
+        var _this = _super.call(this, dsn) || this;
+        _this.dsn = dsn;
+        if (_this.dsn == null) {
+            return _this;
         }
         browser_1.init({
             dsn: dsn,
-            beforeSend: this.handleEvent.bind(this),
+            beforeSend: _this.handleEvent.bind(_this),
         });
+        return _this;
     }
     /**
-     * Возвращает экземпляр синглтона.
+     * Инициализирует сервис с указанным Client DSN (подробнее об этом параметре
+     * смотри в документации sentry.io).
+     *
+     * @param dsn Client DSN. Если не указать этот идентификатор, все события
+     * сервиса будут отправляться в браузерную консоль с уровнем debug и
+     * меткой 'sentry' вместо реальной отправки на сервер sentry.io.
      */
-    Service.getInstance = function () {
-        if (this.instance == null) {
-            throw new NotInitializedError_1.NotInitializedError();
-        }
-        return this.instance;
-    };
-    /**
-     * Инициализирует сервис.
-     * @param dsn Идентификатор аккаунта, предоставляемый в админ-панели sentry.
-     * Если не указан, то сервис будет запущен в демонстрационном режиме: вместо
-     * реальной отправки сообщений в sentry будет происходить их логгирование
-     * в браузерную консоль с уровнем debug.
-     */
-    Service.initialize = function (dsn) {
-        if (this.instance == null) {
-            this.instance = new this(dsn);
-            return;
-        }
-        var instance = this.getInstance();
-        if (instance.dsn === dsn) {
-            return;
-        }
-        this.dispose();
-        this.instance = new this(dsn);
-    };
-    /**
-     * Останавливает работу сервиса и высвобождает все занятые ресурсы.
-     */
-    Service.dispose = function () {
-        if (this.instance == null) {
-            return;
-        }
-        var instance = this.getInstance();
-        this.instance = undefined;
-        instance.close();
+    Service.init = function (dsn) {
+        _super.init.call(this, dsn);
     };
     Object.defineProperty(Service.prototype, "isConnected", {
         /**
-         * True, если сервис действительно подключен к sentry, а не используется
-         * в демонстрационном режиме без реальной отправки событий.
+         * Указывает, что сервис подключён sentry и может использовать его API.
          */
         get: function () {
             return this.dsn != null;
@@ -123,25 +73,17 @@ var Service = /** @class */ (function () {
         configurable: true
     });
     /**
-     * Закрывает соединение с sentry.
+     * @inheritdoc
      */
-    Service.prototype.close = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!this.isConnected) return [3 /*break*/, 2];
-                        return [4 /*yield*/, browser_1.close()];
-                    case 1:
-                        _a.sent();
-                        _a.label = 2;
-                    case 2: return [2 /*return*/];
-                }
-            });
-        });
+    Service.prototype.dispose = function () {
+        _super.prototype.dispose.call(this);
+        if (this.isConnected) {
+            browser_1.close();
+        }
     };
     /**
      * Возвращает коллекцию пользовательских свойств экземпляра ошибки.
+     *
      * @param error Ошибка.
      */
     Service.prototype.getErrorProperties = function (error) {
@@ -158,41 +100,67 @@ var Service = /** @class */ (function () {
         return properties;
     };
     /**
-     * Преобразует каждое отправленное через сервис событие.
-     * @param event События.
+     * Если передано событие ошибки, собирает пользовательские свойства из
+     * экземпляра исключения и присоединяет их к дополнительным данным события.
+     * В противном случае возвращает исходное событие.
+     *
+     * @param event Событие.
      * @param hint Дополнительная информация о событии.
      */
-    Service.prototype.handleEvent = function (event, hint) {
+    Service.prototype.transformErrorEvent = function (event, hint) {
         var error = hint.originalException;
         if (error instanceof Error) {
-            var extra = this.getErrorProperties(error);
-            return __assign(__assign({}, event), { extra: extra });
+            var nextExtra = this.getErrorProperties(error);
+            var prevExtra = event.extra || {};
+            return __assign(__assign({}, event), { extra: __assign(__assign({}, prevExtra), nextExtra) });
         }
         return event;
     };
     /**
+     * Преобразует каждое отправленное через сервис событие.
+     *
+     * @param event Событие.
+     * @param hint Дополнительная информация о событии.
+     */
+    Service.prototype.handleEvent = function (event, hint) {
+        return this.transformErrorEvent(event, hint);
+    };
+    /**
+     * Логгирует событие sentry в браузерную консоль, если код работает в режиме
+     * отладки.
+     *
+     * @param level Уровень сообщени.
+     * @param message Сообщение.
+     * @param payload Параметры события.
+     */
+    Service.prototype.writeToConsole = function (level, message, payload) {
+        if (process.env.NODE_ENV === 'production' ||
+            typeof window === 'undefined') {
+            return;
+        }
+        console.debug("sentry_" + level, message, payload);
+    };
+    /**
      * Принудительно отправляет указанную ошибку в sentry.
+     *
      * @param error Ошибка.
      */
     Service.prototype.sendError = function (error) {
-        if (process.env.NODE_ENV !== 'production') {
-            console.debug("sentry_exception", error.message, this.getErrorProperties(error));
-        }
+        this.writeToConsole('exception', error.message, this.getErrorProperties(error));
         if (this.isConnected) {
             browser_1.captureException(error);
         }
     };
     /**
      * Отправляет в sentry событие с указанными параметрами.
+     *
      * @param level Уровень события.
      * @param label Ярлык события.
      * @param message Описание события.
      * @param payload Дополнительные параметры события.
      */
     Service.prototype.sendEvent = function (level, label, message, payload) {
-        if (process.env.NODE_ENV !== 'production') {
-            console.debug("sentry_" + level, label, message, payload);
-        }
+        this.writeToConsole(level, message, { label: label, extra: payload });
         if (this.isConnected) {
             browser_1.captureEvent({
                 message: message,
@@ -204,6 +172,7 @@ var Service = /** @class */ (function () {
     };
     /**
      * Отправляет отладочное событие.
+     *
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
@@ -214,6 +183,7 @@ var Service = /** @class */ (function () {
     };
     /**
      * Отправляет событие логгирования.
+     *
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
@@ -224,6 +194,7 @@ var Service = /** @class */ (function () {
     };
     /**
      * Отправляет информационное событие.
+     *
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
@@ -234,6 +205,7 @@ var Service = /** @class */ (function () {
     };
     /**
      * Отправляет событие предпреждения.
+     *
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
@@ -244,6 +216,7 @@ var Service = /** @class */ (function () {
     };
     /**
      * Отправляет событие ошибки.
+     *
      * @param label Метка события.
      * @param message Текст события.
      * @param payload Дополнительные параметры события.
@@ -253,5 +226,5 @@ var Service = /** @class */ (function () {
         this.sendEvent(browser_1.Severity.Error, label, message, payload);
     };
     return Service;
-}());
+}(service_1.StrictService));
 exports.Service = Service;

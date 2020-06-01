@@ -8,21 +8,46 @@
 
 ## Hierarchy
 
-* **Service**
+* StrictService
+
+  ↳ **Service**
 
 ## Index
+
+### Constructors
+
+* [constructor](service.md#markdown-header-constructor)
 
 ### Methods
 
 * [debug](service.md#markdown-header-debug)
+* [dispose](service.md#markdown-header-dispose)
 * [error](service.md#markdown-header-error)
 * [info](service.md#markdown-header-info)
 * [log](service.md#markdown-header-log)
 * [sendError](service.md#markdown-header-senderror)
 * [warning](service.md#markdown-header-warning)
-* [dispose](service.md#markdown-header-static-dispose)
-* [getInstance](service.md#markdown-header-static-getinstance)
-* [initialize](service.md#markdown-header-static-initialize)
+* [delete](service.md#markdown-header-static-delete)
+* [get](service.md#markdown-header-static-get)
+* [init](service.md#markdown-header-static-init)
+
+## Constructors
+
+### <a id="markdown-header-constructor" name="markdown-header-constructor"></a>  constructor
+
+\+ **new Service**(`dsn?`: undefined | string): *[Service](service.md)*
+
+*Overrides void*
+
+Создает экземпляр сервиса с указанным параметрами.
+
+**Parameters:**
+
+Name | Type | Description |
+------ | ------ | ------ |
+`dsn?` | undefined &#124; string | Client DSN.  |
+
+**Returns:** *[Service](service.md)*
 
 ## Methods
 
@@ -39,6 +64,18 @@ Name | Type | Default | Description |
 `label` | string | - | Метка события. |
 `message` | string | - | Текст события. |
 `payload` | Record‹string, any› | {} | Дополнительные параметры события.  |
+
+**Returns:** *void*
+
+___
+
+### <a id="markdown-header-dispose" name="markdown-header-dispose"></a>  dispose
+
+▸ **dispose**(): *void*
+
+*Overrides void*
+
+**`inheritdoc`** 
 
 **Returns:** *void*
 
@@ -132,25 +169,32 @@ Name | Type | Default | Description |
 
 ___
 
-### <a id="markdown-header-static-dispose" name="markdown-header-static-dispose"></a> `Static` dispose
+### <a id="markdown-header-static-delete" name="markdown-header-static-delete"></a> `Static` delete
 
-▸ **dispose**(): *void*
+▸ **delete**(): *void*
 
-Останавливает работу сервиса и высвобождает все занятые ресурсы.
+*Inherited from [Service](service.md).[delete](service.md#markdown-header-static-delete)*
+
+Удаляет существующий экземпляр сервиса, освобождая все занятые им ресурсы.
 
 **Returns:** *void*
 
 ___
 
-### <a id="markdown-header-static-getinstance" name="markdown-header-static-getinstance"></a> `Static` getInstance
+### <a id="markdown-header-static-get" name="markdown-header-static-get"></a> `Static` get
 
-▸ **getInstance**<**T**>(`this`: T)
+▸ **get**<**T**>(`this`: T): *InstanceType‹T›*
 
-Возвращает экземпляр синглтона.
+*Inherited from [Service](service.md).[get](service.md#markdown-header-static-get)*
+
+*Overrides void*
+
+Возвращает экземпляр сервиса. Если сервис ещё не был инициализирован
+методом init, вызов get приведёт к ошибке.
 
 **Type parameters:**
 
-▪ **T**: *typeof Service*
+▪ **T**: *typeof SingleService*
 
 **Parameters:**
 
@@ -158,18 +202,23 @@ Name | Type |
 ------ | ------ |
 `this` | T |
 
+**Returns:** *InstanceType‹T›*
+
 ___
 
-### <a id="markdown-header-static-initialize" name="markdown-header-static-initialize"></a> `Static` initialize
+### <a id="markdown-header-static-init" name="markdown-header-static-init"></a> `Static` init
 
-▸ **initialize**(`dsn?`: undefined | string): *void*
+▸ **init**(`dsn?`: undefined | string): *void*
 
-Инициализирует сервис.
+*Overrides void*
+
+Инициализирует сервис с указанным Client DSN (подробнее об этом параметре
+смотри в документации sentry.io).
 
 **Parameters:**
 
 Name | Type | Description |
 ------ | ------ | ------ |
-`dsn?` | undefined &#124; string | Идентификатор аккаунта, предоставляемый в админ-панели sentry. Если не указан, то сервис будет запущен в демонстрационном режиме: вместо реальной отправки сообщений в sentry будет происходить их логгирование в браузерную консоль с уровнем debug.  |
+`dsn?` | undefined &#124; string | Client DSN. Если не указать этот идентификатор, все события сервиса будут отправляться в браузерную консоль с уровнем debug и меткой 'sentry' вместо реальной отправки на сервер sentry.io.  |
 
 **Returns:** *void*

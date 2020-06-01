@@ -6,5 +6,4 @@
 
 ### Classes
 
-* [NotInitializedError](classes/notinitializederror.md)
 * [Service](classes/service.md)
